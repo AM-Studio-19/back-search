@@ -82,6 +82,14 @@
   </div>
 
 <script>
+  // 這是新加的：用來把電話變成 0912***789
+  function maskPhoneNumber(phone) {
+    if (!phone) return '';
+    // 如果電話太短（例如市話），就不隱藏，直接顯示
+    if (phone.length < 8) return phone;
+    // 取前4碼 + *** + 後3碼
+    return phone.substring(0, 4) + '***' + phone.substring(phone.length - 3);
+  }
   // ❗❗❗ 請在這裡填入你的 Apps Script 網址 ❗❗❗
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbx6grwl5DidK6DScAaZLM8udp-Pjn_FrB33bv6ES0JkwAiiIx-xxJHicxANVGH7caSpEg/exec"; 
 
@@ -111,7 +119,7 @@
     return today > target;
   }
 
-  function getPriceCardHtml(info, useOrangeTheme) {
+ function getPriceCardHtml(info, useOrangeTheme) {
     if (!info) return '';
     const dateText = (info.dateRange || '').replace(/【.*?】/g,'');
     let priceText = info.price === 0 ? '免費' : (info.price ? `NT$ ${info.price}` : '請洽詢');
@@ -131,7 +139,7 @@
     return `
       <div class="mt-4 p-4 rounded-xl border ${themeClass} shadow-sm relative overflow-hidden">
         <div class="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16 bg-white opacity-20 rotate-45 transform"></div>
-        <p class="text-xs font-bold uppercase tracking-wider opacity-70 mb-1">Current Price</p>
+        <!-- 這裡原本的 Current Price 已經被移除了 -->
         <div class="flex justify-between items-end">
            <div>
              <h3 class="text-sm font-bold">今日補色價格</h3>
@@ -145,7 +153,6 @@
       </div>
     `;
   }
-
   // ❗❗❗ 這裡是你原本的 createCard 函式，請用這段新的覆蓋掉舊的 ❗❗❗
   function createCard(r, index) {
     const cid = `detail-${index}`;
