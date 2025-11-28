@@ -146,11 +146,15 @@
     `;
   }
 
+  // ❗❗❗ 這裡是你原本的 createCard 函式，請用這段新的覆蓋掉舊的 ❗❗❗
   function createCard(r, index) {
     const cid = `detail-${index}`;
     const customDate = r.customFreeDate;
     const eyebrowDate = r.eyebrowDiscountDate;
     const type = r.customerType || '一般客戶';
+    
+    // 這裡是你的預約網址
+    const BOOKING_URL = "https://liff.line.me/1661306685-kQp9pya4";
     
     const isFreeValid = customDate && !checkIsExpired(customDate);
     const isEyebrowValid = eyebrowDate && !checkIsExpired(eyebrowDate);
@@ -208,6 +212,13 @@
         <!-- 目前價格 -->
         ${getPriceCardHtml(r.currentPriceInfo, isEyebrowValid)}
 
+        <!-- ✨ 新增：LINE 預約按鈕 ✨ -->
+        <a href="${BOOKING_URL}" class="block mt-4 w-full py-3 bg-[#06c755] hover:bg-[#05b34c] text-white font-bold rounded-xl text-center shadow-md transition flex justify-center items-center gap-2">
+          <!-- 這裡放一個行事曆 icon -->
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          立即前往預約
+        </a>
+
         <!-- 摺疊區塊 -->
         <div class="mt-4">
           <button onclick="toggleCollapse(this, '${cid}')" class="w-full flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-pink-500 transition-colors py-2">
@@ -226,7 +237,6 @@
       </div>
     `;
   }
-
   function searchRecord() {
     const q = document.getElementById('queryInput').value.trim();
     if (!q) return displayMessage('error', '請輸入姓名或電話');
