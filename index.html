@@ -82,13 +82,20 @@
   </div>
 
 <script>
-  // 這是新加的：用來把電話變成 0912***789
+ // ✨ 修正版：強制轉文字並移除單引號，確保電話能正常顯示
   function maskPhoneNumber(phone) {
     if (!phone) return '';
-    // 如果電話太短（例如市話），就不隱藏，直接顯示
-    if (phone.length < 8) return phone;
+    
+    // 1. String(phone): 強制把數字轉成文字
+    // 2. .replace(/'/g, ''): 把之前後端加的單引號拿掉
+    // 3. .trim(): 去除前後空白
+    const str = String(phone).replace(/'/g, '').trim();
+
+    // 如果處理完是空的，或長度太短(如市話)，直接回傳
+    if (str.length < 8) return str;
+
     // 取前4碼 + *** + 後3碼
-    return phone.substring(0, 4) + '***' + phone.substring(phone.length - 3);
+    return str.substring(0, 4) + '***' + str.substring(str.length - 3);
   }
   // ❗❗❗ 請在這裡填入你的 Apps Script 網址 ❗❗❗
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbx6grwl5DidK6DScAaZLM8udp-Pjn_FrB33bv6ES0JkwAiiIx-xxJHicxANVGH7caSpEg/exec"; 
