@@ -160,7 +160,7 @@
       </div>
     `;
   }
-  // ❗❗❗ 這裡是你原本的 createCard 函式，請用這段新的覆蓋掉舊的 ❗❗❗
+ // ❗❗❗ 請用這段覆蓋原本的 createCard 函式 ❗❗❗
   function createCard(r, index) {
     const cid = `detail-${index}`;
     const customDate = r.customFreeDate;
@@ -230,20 +230,35 @@
         <!-- 目前價格 -->
         ${getPriceCardHtml(r.currentPriceInfo, isEyebrowValid)}
 
+        <!-- LINE 預約按鈕 -->
         <a href="${BOOKING_URL}" class="block mt-4 w-full py-3 bg-[#06c755] hover:bg-[#05b34c] text-white font-bold rounded-xl text-center shadow-md transition flex justify-center items-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
           立即前往預約
         </a>
 
+        <!-- ✨ 修改點 1：特別提醒移到外面來了 ✨ -->
+        ${r.specialReminder ? `
+            <div class="mt-4 bg-yellow-50 border border-yellow-200 text-yellow-800 p-3 rounded-xl flex items-start gap-3 shadow-sm">
+              <span class="text-xl">💡</span>
+              <div>
+                <p class="font-bold text-sm">特別提醒</p>
+                <p class="text-sm leading-relaxed">${r.specialReminder}</p>
+              </div>
+            </div>
+        ` : ''}
+
+        <!-- 摺疊區塊與按鈕 -->
         <div class="mt-4">
-          <button onclick="toggleCollapse(this, '${cid}')" class="w-full flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-pink-500 transition-colors py-2">
-            <span class="btn-text">查看完整價目表</span>
-            <svg class="icon-arrow w-4 h-4 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          <!-- ✨ 修改點 2：更明顯的按鈕樣式 (灰色塊狀 + 邊框) ✨ -->
+          <button onclick="toggleCollapse(this, '${cid}')" 
+                  class="group w-full py-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-gray-600 font-bold transition-all flex items-center justify-center gap-2 shadow-sm">
+            <span class="btn-text group-hover:text-[#ff99aa] transition-colors">查看完整價目表</span>
+            <svg class="icon-arrow w-5 h-5 text-gray-400 group-hover:text-[#ff99aa] transition-transform duration-300 transform group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
           
           <div id="${cid}" class="collapsible-content bg-gray-50 rounded-xl px-4 mt-2">
             <div class="py-4 space-y-2">
-              ${r.specialReminder ? `<div class="bg-yellow-50 text-yellow-800 text-xs p-2 rounded mb-3">💡 ${r.specialReminder}</div>` : ''}
+              <!-- 特別提醒已經移出去了，這裡只剩下價格表 -->
               ${rangesHtml}
               <p class="text-[10px] text-gray-400 text-center mt-2 pt-2 border-t border-gray-200">系統試算僅供參考，實際費用以現場狀況為準</p>
             </div>
