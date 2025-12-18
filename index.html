@@ -1,313 +1,331 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>晨迷AM Studio | 補色查詢系統</title>
-  <!-- 引入 Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 引入字型 -->
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Noto Sans TC', sans-serif; background-color: #fcfcfc; }
-    /* 自定義背景紋理 */
-    .bg-pattern {
-      background-image: radial-gradient(#ffe4e6 1px, transparent 1px);
-      background-size: 20px 20px;
-    }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 241, 242, 0.5);
-    }
-    .collapsible-content { 
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-      max-height: 0; 
-      overflow: hidden; 
-      opacity: 0; 
-      transform: translateY(-10px);
-    }
-    .collapsible-content.expanded { 
-      max-height: 1000px; 
-      opacity: 1; 
-      transform: translateY(0);
-    }
-    .animate-enter { animation: slideIn 0.5s ease-out forwards; opacity: 0; transform: translateY(20px); }
-    @keyframes slideIn { to { opacity: 1; transform: translateY(0); } }
-  </style>
-</head>
-<body class="bg-pattern min-h-screen text-gray-700">
-
-  <!-- 置頂標題區 -->
-  <div class="sticky top-0 z-50 glass-card border-b border-pink-100 shadow-sm">
-    <div class="max-w-xl mx-auto px-4 py-3 flex items-center justify-center">
-      <h1 class="text-xl font-bold text-gray-800 tracking-wide">晨迷 AM Studio</h1>
-    </div>
-  </div>
-
-  <div class="max-w-xl mx-auto p-4 sm:p-6 pb-20">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>舊客補色查詢 | AM Beauty Studio</title>
     
-    <!-- 搜尋卡片 -->
-    <div class="bg-white p-6 rounded-2xl shadow-xl shadow-pink-100/50 mb-8 border border-white">
-      <h2 class="text-2xl font-bold text-center mb-1 text-gray-800">霧眉霧唇補色價格查詢</h2>
-      <p class="text-center text-gray-400 text-sm mb-6">輸入姓名或電話號碼查詢您目前的補色價格</p>
-      
-      <div class="relative">
-        <input type="text" id="queryInput" placeholder="例如：林小美 或 0912..." 
-               class="w-full p-4 pl-5 rounded-xl bg-gray-50 border border-gray-200 text-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:bg-white transition-all placeholder-gray-400"
-               onkeydown="if(event.key === 'Enter') searchRecord()">
-      </div>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { corePlugins: { preflight: false } }
+    </script>
 
-      <button onclick="searchRecord()" id="searchButton" 
-              class="w-full mt-4 p-3.5 bg-gradient-to-r from-[#ff99aa] to-[#ff7a8b] hover:from-[#ff889b] hover:to-[#ff6075] text-white font-bold rounded-xl text-lg shadow-lg shadow-pink-200 transition-all transform active:scale-95 flex justify-center items-center">
-        <span>立即查詢</span>
-        <!-- Loading Icon -->
-        <svg id="loadingIndicator" class="hidden animate-spin h-5 w-5 text-white ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      </button>
-
-      <!-- 訊息顯示區 -->
-      <div id="messageArea" class="hidden mt-4 text-center p-3 rounded-xl text-sm font-medium animate-pulse"></div>
-    </div>
-
-    <!-- 結果顯示區 -->
-    <div id="resultsArea" class="space-y-6"></div>
-
-    <!-- Footer -->
-    <footer class="mt-12 text-center text-xs text-gray-400">
-      <p>&copy; 晨迷 AM Studio. All rights reserved.</p>
-    </footer>
-  </div>
-
-<script>
- // ✨ 修正版：強制轉文字並移除單引號，確保電話能正常顯示
-  function maskPhoneNumber(phone) {
-    if (!phone) return '';
-    
-    // 1. String(phone): 強制把數字轉成文字
-    // 2. .replace(/'/g, ''): 把之前後端加的單引號拿掉
-    // 3. .trim(): 去除前後空白
-    const str = String(phone).replace(/'/g, '').trim();
-
-    // 如果處理完是空的，或長度太短(如市話)，直接回傳
-    if (str.length < 8) return str;
-
-    // 取前4碼 + *** + 後3碼
-    return str.substring(0, 4) + '***' + str.substring(str.length - 3);
-  }
-  // ❗❗❗ 請在這裡填入你的 Apps Script 網址 ❗❗❗
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbx6grwl5DidK6DScAaZLM8udp-Pjn_FrB33bv6ES0JkwAiiIx-xxJHicxANVGH7caSpEg/exec"; 
-
-  function toggleCollapse(btn, contentId) {
-    const content = document.getElementById(contentId);
-    const isExpanded = content.classList.toggle('expanded');
-    const icon = btn.querySelector('.icon-arrow');
-    icon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
-    btn.querySelector('.btn-text').textContent = isExpanded ? '收起詳細價目' : '查看完整價目表';
-  }
-
-  function displayMessage(type, content) {
-    const msg = document.getElementById('messageArea');
-    msg.textContent = content;
-    msg.className = `mt-4 text-center p-3 rounded-xl text-sm font-medium ${
-      type === 'error' ? 'bg-red-50 text-red-600 border border-red-100' : 
-      type === 'success' ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-gray-100 text-gray-600'
-    }`;
-    msg.classList.remove('hidden', 'animate-pulse');
-  }
-
-  function checkIsExpired(dateStr) {
-    if (!dateStr) return false;
-    const target = new Date(dateStr);
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    return today > target;
-  }
-
- function getPriceCardHtml(info, useOrangeTheme) {
-    if (!info) return '';
-    const dateText = (info.dateRange || '').replace(/【.*?】/g,'');
-    let priceText = info.price === 0 ? '免費' : (info.price ? `NT$ ${info.price}` : '請洽詢');
-    
-    // 樣式邏輯
-    let themeClass = 'bg-gradient-to-br from-pink-50 to-white border-pink-200 text-pink-900';
-    let badgeClass = 'bg-pink-500';
-
-    if (info.price === 0) {
-      themeClass = 'bg-gradient-to-br from-green-50 to-white border-green-200 text-green-900';
-      badgeClass = 'bg-green-600';
-    } else if (useOrangeTheme) {
-      themeClass = 'bg-gradient-to-br from-orange-50 to-white border-orange-200 text-orange-900';
-      badgeClass = 'bg-orange-500';
-    }
-
-    return `
-      <div class="mt-4 p-4 rounded-xl border ${themeClass} shadow-sm relative overflow-hidden">
-        <div class="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16 bg-white opacity-20 rotate-45 transform"></div>
-        <!-- 這裡原本的 Current Price 已經被移除了 -->
-        <div class="flex justify-between items-end">
-           <div>
-             <h3 class="text-sm font-bold">今日補色價格</h3>
-             <p class="text-xs mt-1 opacity-80">${dateText}</p>
-             ${info.daysRemainingText ? `<p class="text-xs font-bold mt-1 ${info.daysRemainingText.includes('過期') ? 'text-red-500' : 'text-blue-500'}">${info.daysRemainingText}</p>` : ''}
-           </div>
-           <span class="px-4 py-1.5 text-lg font-bold text-white rounded-lg shadow-md ${badgeClass}">
-             ${priceText}
-           </span>
-        </div>
-      </div>
-    `;
-  }
- // ❗❗❗ 請用這段覆蓋原本的 createCard 函式 ❗❗❗
-  function createCard(r, index) {
-    const cid = `detail-${index}`;
-    const customDate = r.customFreeDate;
-    const eyebrowDate = r.eyebrowDiscountDate;
-    const type = r.customerType || '一般客戶';
-    const BOOKING_URL = "https://liff.line.me/1661306685-kQp9pya4"; // 你的預約網址
-    
-    const isFreeValid = customDate && !checkIsExpired(customDate);
-    const isEyebrowValid = eyebrowDate && !checkIsExpired(eyebrowDate);
-
-    // 處理電話隱碼
-    const maskedPhone = maskPhoneNumber(r.phone);
-
-    let rangesHtml = (r.touchUpRanges || []).map(t => {
-       const isFree = t.price === 0;
-       return `
-         <div class="flex justify-between items-center py-2 border-b border-dashed border-gray-200 last:border-0">
-           <span class="text-sm ${isFree ? 'text-green-600 font-bold' : 'text-gray-600'}">${t.dateRange}</span>
-           <span class="text-sm font-bold ${isFree ? 'bg-green-100 text-green-700 px-2 py-0.5 rounded' : 'text-gray-800'}">
-             ${t.price === 0 ? '免費' : (t.price ? '$'+t.price : '洽詢')}
-           </span>
-         </div>`;
-    }).join('');
-
-    return `
-      <div class="bg-white rounded-2xl p-5 shadow-lg border border-gray-100 animate-enter" style="animation-delay: ${index * 100}ms">
-        <!-- 標頭 -->
-        <div class="flex items-center justify-between mb-3">
-          <div>
-            <h3 class="text-lg font-bold text-gray-800 flex flex-wrap items-center gap-2">
-              ${r.name} 
-              <!-- 顯示隱碼電話 -->
-              ${maskedPhone ? `<span class="text-sm font-normal text-gray-500">(${maskedPhone})</span>` : ''}
-            </h3>
-            <div class="flex items-center gap-2 mt-1">
-                <span class="text-xs font-normal text-white bg-gray-400 px-2 py-0.5 rounded-full">${type}</span>
-                <p class="text-sm text-pink-500 font-medium">${r.service}</p>
-            </div>
-          </div>
-          <div class="text-right">
-             <p class="text-xs text-gray-400">上次預約</p>
-             <p class="text-sm font-bold text-gray-600">${r.lastDate || '無'}</p>
-          </div>
-        </div>
-
-        <!-- 特殊卡片區 -->
-        ${isFreeValid ? `
-          <div class="mb-3 bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-3">
-            <div class="bg-green-100 p-2 rounded-full text-green-600">🎁</div>
-            <div>
-              <p class="text-xs text-green-800 font-bold">免費補色到期日</p>
-              <p class="text-base font-black text-green-700">${customDate}</p>
-            </div>
-          </div>
-        ` : ''}
-
-        ${isEyebrowValid ? `
-          <div class="mb-3 bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-center gap-3">
-            <div class="bg-orange-100 p-2 rounded-full text-orange-600">🔥</div>
-            <div>
-              <p class="text-xs text-orange-800 font-bold">首次補色優惠期限</p>
-              <p class="text-base font-black text-orange-700">${eyebrowDate}</p>
-            </div>
-          </div>
-        ` : ''}
-
-        <!-- 目前價格 -->
-        ${getPriceCardHtml(r.currentPriceInfo, isEyebrowValid)}
-
-        <!-- LINE 預約按鈕 -->
-        <a href="${BOOKING_URL}" class="block mt-4 w-full py-3 bg-[#06c755] hover:bg-[#05b34c] text-white font-bold rounded-xl text-center shadow-md transition flex justify-center items-center gap-2">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-          立即前往預約
-        </a>
-
-        <!-- ✨ 修改點 1：特別提醒移到外面來了 ✨ -->
-        ${r.specialReminder ? `
-            <div class="mt-4 bg-yellow-50 border border-yellow-200 text-yellow-800 p-3 rounded-xl flex items-start gap-3 shadow-sm">
-              <span class="text-xl">💡</span>
-              <div>
-                <p class="font-bold text-sm">特別提醒</p>
-                <p class="text-sm leading-relaxed">${r.specialReminder}</p>
-              </div>
-            </div>
-        ` : ''}
-
-        <!-- 摺疊區塊與按鈕 -->
-        <div class="mt-4">
-          <!-- ✨ 修改點 2：更明顯的按鈕樣式 (灰色塊狀 + 邊框) ✨ -->
-          <button onclick="toggleCollapse(this, '${cid}')" 
-                  class="group w-full py-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-gray-600 font-bold transition-all flex items-center justify-center gap-2 shadow-sm">
-            <span class="btn-text group-hover:text-[#ff99aa] transition-colors">查看完整價目表</span>
-            <svg class="icon-arrow w-5 h-5 text-gray-400 group-hover:text-[#ff99aa] transition-transform duration-300 transform group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-          </button>
-          
-          <div id="${cid}" class="collapsible-content bg-gray-50 rounded-xl px-4 mt-2">
-            <div class="py-4 space-y-2">
-              <!-- 特別提醒已經移出去了，這裡只剩下價格表 -->
-              ${rangesHtml}
-              <p class="text-[10px] text-gray-400 text-center mt-2 pt-2 border-t border-gray-200">系統試算僅供參考，實際費用以現場狀況為準</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-  function searchRecord() {
-    const q = document.getElementById('queryInput').value.trim();
-    if (!q) return displayMessage('error', '請輸入姓名或電話');
-    
-    // UI 重設
-    const btn = document.getElementById('searchButton');
-    const loading = document.getElementById('loadingIndicator');
-    const msgArea = document.getElementById('messageArea');
-    const resultsArea = document.getElementById('resultsArea');
-    
-    btn.disabled = true;
-    btn.classList.add('opacity-75');
-    loading.classList.remove('hidden');
-    msgArea.classList.add('hidden');
-    resultsArea.innerHTML = '';
-
-    // 使用 Fetch 呼叫 GAS
-    fetch(`${GAS_API_URL}?q=${encodeURIComponent(q)}`)
-      .then(response => response.json())
-      .then(res => {
-        if (res.error) {
-          displayMessage('error', res.error);
-        } else if (res.message) {
-          displayMessage('info', res.message);
-        } else if (res.data && res.data.length > 0) {
-          displayMessage('success', `查詢成功：找到 ${res.data.length} 筆資料`);
-          resultsArea.innerHTML = res.data.map((r, i) => createCard(r, i)).join('');
-        } else {
-          displayMessage('info', '查無資料');
+    <style>
+        /* --- 品牌色調 (維持一致) --- */
+        :root {
+            --primary: #D6BFA8;   /* 奶茶棕 */
+            --primary-dark: #C4A488;
+            --secondary: #E6C2C2; /* 玫瑰粉 */
+            --text: #5A483F;      /* 深咖字 */
+            --text-light: #8D7B72;
+            --bg-color: #F9F8F6;  
+            --card-shadow: 0 10px 30px -10px rgba(214, 191, 168, 0.4);
         }
-      })
-      .catch(err => {
-        console.error(err);
-        displayMessage('error', '連線失敗，請稍後再試');
-      })
-      .finally(() => {
-        btn.disabled = false;
-        btn.classList.remove('opacity-75');
-        loading.classList.add('hidden');
-      });
-  }
-</script>
+
+        /* 全域設定 */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: url('bg.jpg'); /* 請確保背景圖檔名正確 */
+            background-size: cover;
+            background-attachment: fixed;
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0; padding: 0;
+            padding-bottom: 100px;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        /* --- 頂部 Header --- */
+        .header-section {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white; 
+            padding: 40px 20px 60px 20px; 
+            text-align: center; 
+            border-radius: 0 0 40px 40px; 
+            position: relative; 
+            box-shadow: 0 10px 25px rgba(196, 164, 136, 0.4);
+            margin-bottom: -40px; /* 讓搜尋框往上浮動 */
+        }
+        
+        .header-logo { font-size: 1.5rem; font-weight: 800; letter-spacing: 2px; margin: 0; }
+        .header-sub { font-size: 0.9rem; opacity: 0.9; margin-top: 5px; font-weight: 300; }
+
+        .container { max-width: 600px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 10; }
+
+        /* --- 查詢框 (主要焦點) --- */
+        .search-card {
+            background: #fff; border-radius: 24px; padding: 35px 25px;
+            box-shadow: var(--card-shadow); text-align: center; 
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+        .search-icon-box {
+            width: 70px; height: 70px; background: #FFF5F5;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px auto; color: var(--secondary);
+            font-size: 2rem; border: 4px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .search-title { font-size: 1.4rem; font-weight: 700; color: var(--text); margin: 0 0 5px 0; }
+        .search-desc { font-size: 0.9rem; color: #999; margin-bottom: 25px; }
+
+        .input-group { position: relative; margin-bottom: 20px; }
+        .search-input {
+            width: 100%; padding: 18px 20px 18px 50px; font-size: 1.1rem;
+            border: 2px solid #eee; border-radius: 18px; background-color: #FAFAFA;
+            outline: none; transition: 0.3s; color: var(--text);
+        }
+        .search-input:focus { background-color: #fff; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(214, 191, 168, 0.15); }
+        .input-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #ccc; font-size: 1.2rem; }
+
+        .btn-search {
+            display: block; width: 100%; padding: 18px 0;
+            background: linear-gradient(135deg, #E6C2C2 0%, #Dcb0b0 100%);
+            color: #fff; border-radius: 18px; font-weight: 700; font-size: 1.1rem;
+            cursor: pointer; border: none; letter-spacing: 1px;
+            box-shadow: 0 8px 20px rgba(230, 194, 194, 0.4); transition: 0.3s;
+        }
+        .btn-search:active { transform: scale(0.98); box-shadow: 0 4px 10px rgba(230, 194, 194, 0.4); }
+        .btn-search:disabled { opacity: 0.7; cursor: wait; }
+
+        .notice-text { font-size: 0.85rem; color: #C17E7E; font-weight: bold; margin-top: 15px; background: #FFF0F0; padding: 10px; border-radius: 10px; display: inline-block; }
+
+        /* --- 查詢結果卡片 --- */
+        .result-container { margin-top: 30px; }
+        .result-card {
+            background: white; border-radius: 20px; padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.06); margin-bottom: 20px;
+            border: 1px solid rgba(0,0,0,0.02); animation: slideUp 0.5s ease;
+        }
+        .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
+        .result-name { font-size: 1.3rem; font-weight: 700; color: var(--text); }
+        
+        .info-badges { display: flex; gap: 10px; margin-bottom: 20px; }
+        .info-badge { flex: 1; background: #F9F8F6; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #eee; }
+        .info-label { display: block; font-size: 0.8rem; color: #999; margin-bottom: 4px; }
+        .info-value { display: block; font-size: 1.1rem; font-weight: 700; color: var(--text); }
+        .info-value.highlight { color: #C17E7E; }
+
+        /* 價格顯示 */
+        .price-box { 
+            margin-top: 15px; padding: 15px; border-radius: 15px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03); 
+        }
+
+        /* 展開收合 */
+        .collapsible-content { transition: all 0.4s; max-height: 0; overflow: hidden; opacity: 0; }
+        .collapsible-content.expanded { max-height: 1000px; opacity: 1; }
+        
+        /* 訊息提示 */
+        .msg-box { margin-top: 20px; padding: 15px; border-radius: 12px; font-size: 0.95rem; font-weight: bold; display: none; text-align: center; }
+        .msg-error { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
+        .msg-success { background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; }
+
+        /* 懸浮預約按鈕 */
+        .floating-cta { 
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
+            width: 85%; max-width: 350px; background: var(--text); color: white; 
+            padding: 16px; border-radius: 50px; text-align: center; 
+            text-decoration: none; font-weight: 700; font-size: 1.1rem; 
+            box-shadow: 0 10px 25px rgba(90, 72, 63, 0.4); z-index: 950; 
+            display: flex; align-items: center; justify-content: center; gap: 8px; 
+            transition: 0.2s;
+        }
+        .floating-cta:active { transform: translateX(-50%) scale(0.96); }
+
+        /* 動畫 */
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header-section">
+        <h1 class="header-logo">AM Beauty Studio</h1>
+        <div class="header-sub">專屬補色資格查詢系統</div>
+    </div>
+
+    <div class="container">
+        <!-- 查詢卡片 -->
+        <div class="search-card">
+            <div class="search-icon-box">🔍</div>
+            <h2 class="search-title">查詢補色優惠</h2>
+            <p class="search-desc">輸入姓名或電話，立即查看您的專屬方案</p>
+            
+            <div class="input-group">
+                <div class="input-icon">👤</div>
+                <input type="text" id="queryInput" class="search-input" 
+                       placeholder="例如：林小美 或 0912..." 
+                       onkeydown="if(event.key === 'Enter') searchRecord()">
+            </div>
+
+            <div class="notice-text">💡 小提醒：建議優先使用「姓名」查詢，資料更準確喔！</div>
+            
+            <button onclick="searchRecord()" id="searchButton" class="btn-search">
+                立即查詢
+            </button>
+
+            <!-- 訊息顯示 -->
+            <div id="messageArea" class="msg-box"></div>
+        </div>
+
+        <!-- 結果顯示區 -->
+        <div id="resultsArea" class="result-container"></div>
+    </div>
+
+    <!-- 預約按鈕 -->
+    <a href="https://liff.line.me/1661306685-kQp9pya4" class="floating-cta">
+        <span>📅 立即預約諮詢</span>
+    </a>
+
+    <!-- JavaScript 邏輯 -->
+    <script>
+        // GAS API (維持不變)
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbx6grwl5DidK6DScAaZLM8udp-Pjn_FrB33bv6ES0JkwAiiIx-xxJHicxANVGH7caSpEg/exec"; 
+
+        function searchRecord() {
+            let q = document.getElementById('queryInput').value.trim();
+            if(!q) return showMessage('error', '請輸入姓名或電話');
+            
+            // 手機號去0邏輯
+            if (/^0\d+/.test(q)) q = q.substring(1);
+
+            const btn = document.getElementById('searchButton');
+            const area = document.getElementById('resultsArea');
+            
+            // Loading UI
+            btn.textContent = '資料查詢中...'; 
+            btn.disabled = true; 
+            area.innerHTML = '';
+            document.getElementById('messageArea').style.display = 'none';
+
+            fetch(`${GAS_API_URL}?q=${encodeURIComponent(q)}`)
+                .then(response => response.json())
+                .then(res => {
+                    if (res.data && res.data.length > 0) {
+                        
+                        // 1. 排序 (日期新到舊)
+                        const sortedData = res.data.sort((a, b) => new Date(b.lastDate) - new Date(a.lastDate));
+                        
+                        // 2. 過濾重複 (只留該項目最新一筆)
+                        const uniqueData = [];
+                        const seenServices = new Set(); 
+
+                        sortedData.forEach(item => {
+                            const key = `${item.name}_${item.service}`;
+                            if (!seenServices.has(key)) {
+                                uniqueData.push(item);
+                                seenServices.add(key);
+                            }
+                        });
+
+                        if(uniqueData.length > 0) {
+                            showMessage('success', `🎉 查詢成功！找到 ${uniqueData.length} 筆資料`);
+                            area.innerHTML = uniqueData.map((r, i) => createCard(r, i)).join('');
+                        } else {
+                            showMessage('error', '查無相關資料');
+                        }
+                        
+                    } else {
+                        showMessage('error', '查無資料，請確認輸入是否正確 (或是嘗試用姓名查詢)');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showMessage('error', '系統連線失敗，請稍後再試');
+                })
+                .finally(() => {
+                    btn.textContent = '立即查詢'; 
+                    btn.disabled = false;
+                });
+        }
+
+        function showMessage(type, text) {
+            const el = document.getElementById('messageArea');
+            el.textContent = text;
+            el.className = `msg-box ${type === 'error' ? 'msg-error' : 'msg-success'}`;
+            el.style.display = 'block';
+        }
+
+        function createCard(r, i) { 
+            const cid = `card-${i}`; 
+            const ranges = (r.touchUpRanges||[]).map(t => 
+                `<div class="flex justify-between py-3 border-b border-gray-100 text-sm last:border-0">
+                    <span class="text-gray-600">${t.dateRange}</span>
+                    <span class="font-bold text-gray-800">${t.price===0?'免費':'$'+t.price}</span>
+                </div>`
+            ).join(''); 
+            
+            return `
+            <div class="result-card">
+                <div class="result-header">
+                    <div>
+                        <div class="result-name">${r.name}</div>
+                        <span class="text-gray-400 text-sm">(${maskPhoneNumber(r.phone)})</span>
+                    </div>
+                </div>
+                
+                <div class="info-badges">
+                    <div class="info-badge">
+                        <span class="info-label">上次日期</span>
+                        <span class="info-value">${r.lastDate||'-'}</span>
+                    </div>
+                    <div class="info-badge">
+                        <span class="info-label">上次項目</span>
+                        <span class="info-value highlight">${r.service}</span>
+                    </div>
+                </div>
+
+                ${r.specialReminder ? 
+                    `<div class="bg-yellow-50 text-yellow-800 p-3 rounded-xl text-sm mb-4 font-medium flex items-start gap-2">
+                        <span>💡</span><span>${r.specialReminder}</span>
+                     </div>` : ''
+                } 
+                
+                ${getPriceCardHtml(r.currentPriceInfo, r.eyebrowDiscountDate && !checkIsExpired(r.eyebrowDiscountDate))} 
+                
+                <div style="margin-top:20px;">
+                    <button onclick="toggleCollapse('${cid}', this)" 
+                            style="width:100%; padding:12px; background:#F9F8F6; color:#888; border:none; border-radius:12px; font-size:0.9rem; font-weight:600; cursor:pointer; transition:0.2s;">
+                        查看完整價目表 ▼
+                    </button>
+                    <div id="${cid}" class="collapsible-content bg-gray-50 px-4 mt-2 rounded-xl">
+                        <div class="py-3">${ranges}</div>
+                    </div>
+                </div>
+            </div>`; 
+        }
+
+        function getPriceCardHtml(info, useOrange) { 
+            if (!info) return ''; 
+            let p = info.price===0 ? '免費' : (info.price ? `NT$ ${info.price}` : '洽詢'); 
+            let bg = info.price===0 ? 'bg-green-600' : (useOrange ? 'bg-orange-500' : 'bg-pink-500'); 
+            let theme = info.price===0 ? 'bg-green-50 border-green-200' : (useOrange ? 'bg-orange-50 border-orange-200' : 'bg-pink-50 border-pink-200'); 
+            let dateText = (info.dateRange || '').replace(/【.*?】/g, '');
+            
+            return `
+            <div class="price-box border ${theme}">
+                <div>
+                    <h3 class="text-xs font-bold text-gray-400 mb-1">目前補色價格</h3>
+                    <p class="text-lg font-bold text-gray-800 tracking-wide">${dateText}</p>
+                </div>
+                <span class="px-4 py-2 text-white text-xl font-bold rounded-xl ${bg} shadow-md">${p}</span>
+            </div>`; 
+        }
+
+        function checkIsExpired(d) { if(!d)return false; return new Date() > new Date(d); }
+        function maskPhoneNumber(p) { if(!p)return''; let s=String(p).replace(/'/g,'').trim(); return s.length<8?s:s.substring(0,4)+'***'+s.substring(s.length-3); }
+        function toggleCollapse(id, btn) { 
+            const el = document.getElementById(id); 
+            el.classList.toggle('expanded'); 
+            btn.textContent = el.classList.contains('expanded') ? '收起完整價目表 ▲' : '查看完整價目表 ▼'; 
+            btn.style.background = el.classList.contains('expanded') ? '#eee' : '#F9F8F6';
+        }
+    </script>
 </body>
 </html>
