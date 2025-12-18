@@ -12,7 +12,7 @@
     </script>
 
     <style>
-        /* --- 品牌色調 (維持一致) --- */
+        /* --- 品牌色調 --- */
         :root {
             --primary: #D6BFA8;   /* 奶茶棕 */
             --primary-dark: #C4A488;
@@ -28,7 +28,7 @@
 
         body {
             background-color: var(--bg-color);
-            background-image: url('bg.jpg'); /* 請確保背景圖檔名正確 */
+            background-image: url('bg.jpg'); 
             background-size: cover;
             background-attachment: fixed;
             color: var(--text);
@@ -48,7 +48,7 @@
             border-radius: 0 0 40px 40px; 
             position: relative; 
             box-shadow: 0 10px 25px rgba(196, 164, 136, 0.4);
-            margin-bottom: -40px; /* 讓搜尋框往上浮動 */
+            margin-bottom: -40px;
         }
         
         .header-logo { font-size: 1.5rem; font-weight: 800; letter-spacing: 2px; margin: 0; }
@@ -56,7 +56,7 @@
 
         .container { max-width: 600px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 10; }
 
-        /* --- 查詢框 (主要焦點) --- */
+        /* --- 查詢框 --- */
         .search-card {
             background: #fff; border-radius: 24px; padding: 35px 25px;
             box-shadow: var(--card-shadow); text-align: center; 
@@ -137,7 +137,13 @@
         }
         .floating-cta:active { transform: translateX(-50%) scale(0.96); }
 
-        /* 動畫 */
+        /* 備註標籤樣式 */
+        .range-label {
+            display: inline-block; font-size: 0.75rem; background-color: var(--primary);
+            color: white; padding: 2px 8px; border-radius: 4px; margin-bottom: 4px; font-weight: bold;
+        }
+        .range-label.free { background-color: #E6C2C2; }
+
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
     </style>
@@ -185,22 +191,19 @@
 
     <!-- JavaScript 邏輯 -->
     <script>
-        // GAS API (維持不變)
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbx6grwl5DidK6DScAaZLM8udp-Pjn_FrB33bv6ES0JkwAiiIx-xxJHicxANVGH7caSpEg/exec"; 
 
         function searchRecord() {
             let q = document.getElementById('queryInput').value.trim();
             if(!q) return showMessage('error', '請輸入姓名或電話');
             
-            // 手機號去0邏輯
+            // 手機號去0
             if (/^0\d+/.test(q)) q = q.substring(1);
 
             const btn = document.getElementById('searchButton');
             const area = document.getElementById('resultsArea');
             
-            // Loading UI
-            btn.textContent = '資料查詢中...'; 
-            btn.disabled = true; 
+            btn.textContent = '資料查詢中...'; btn.disabled = true; 
             area.innerHTML = '';
             document.getElementById('messageArea').style.display = 'none';
 
@@ -208,14 +211,11 @@
                 .then(response => response.json())
                 .then(res => {
                     if (res.data && res.data.length > 0) {
-                        
                         // 1. 排序 (日期新到舊)
                         const sortedData = res.data.sort((a, b) => new Date(b.lastDate) - new Date(a.lastDate));
-                        
-                        // 2. 過濾重複 (只留該項目最新一筆)
+                        // 2. 過濾重複
                         const uniqueData = [];
                         const seenServices = new Set(); 
-
                         sortedData.forEach(item => {
                             const key = `${item.name}_${item.service}`;
                             if (!seenServices.has(key)) {
@@ -230,7 +230,6 @@
                         } else {
                             showMessage('error', '查無相關資料');
                         }
-                        
                     } else {
                         showMessage('error', '查無資料，請確認輸入是否正確 (或是嘗試用姓名查詢)');
                     }
@@ -254,12 +253,43 @@
 
         function createCard(r, i) { 
             const cid = `card-${i}`; 
-            const ranges = (r.touchUpRanges||[]).map(t => 
-                `<div class="flex justify-between py-3 border-b border-gray-100 text-sm last:border-0">
-                    <span class="text-gray-600">${t.dateRange}</span>
-                    <span class="font-bold text-gray-800">${t.price===0?'免費':'$'+t.price}</span>
-                </div>`
-            ).join(''); 
+            
+            // ✨ 標籤邏輯更新 ✨
+            let labels = [];
+            const ranges = r.touchUpRanges || [];
+            
+            if (r.service.includes('眉')) {
+                // 霧眉：固定4階
+                labels = ['半年內', '6-8個月', '8-12個月', '一年以上'];
+            } else if (r.service.includes('唇')) {
+                // 霧唇：判斷第一階是否為免費
+                if (ranges.length > 0 && ranges[0].price === 0) {
+                    // 首次客 (有贈送)
+                    labels = ['(贈)3個月內', '半年內', '一年內', '一年以上'];
+                } else {
+                    // 非首次 (直接從半年開始)
+                    labels = ['半年內', '一年內', '一年以上'];
+                }
+            } else {
+                labels = ['第一階', '第二階', '第三階', '第四階'];
+            }
+
+            const rangesHtml = ranges.map((t, idx) => {
+                const labelText = labels[idx] || '';
+                const isFree = t.price === 0;
+                const labelHtml = labelText ? `<span class="range-label ${isFree ? 'free' : ''}">${labelText}</span>` : '';
+
+                return `
+                <div class="flex justify-between items-center py-3 border-b border-gray-100 text-sm last:border-0">
+                    <div class="flex flex-col">
+                        ${labelHtml}
+                        <span class="text-gray-600">${t.dateRange}</span>
+                    </div>
+                    <span class="font-bold text-gray-800 text-base">
+                        ${t.price === 0 ? '免費' : '$' + t.price}
+                    </span>
+                </div>`;
+            }).join(''); 
             
             return `
             <div class="result-card">
@@ -295,7 +325,7 @@
                         查看完整價目表 ▼
                     </button>
                     <div id="${cid}" class="collapsible-content bg-gray-50 px-4 mt-2 rounded-xl">
-                        <div class="py-3">${ranges}</div>
+                        <div class="py-3">${rangesHtml}</div>
                     </div>
                 </div>
             </div>`; 
