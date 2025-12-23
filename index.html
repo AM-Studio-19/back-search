@@ -157,24 +157,39 @@
     </div>
 
     <div class="container">
-        <!-- 查詢卡片 -->
-        <div class="search-card">
-            <div class="search-icon-box">🔍</div>
-            <h2 class="search-title">查詢補色優惠</h2>
-            <p class="search-desc">輸入姓名或電話，立即查看您的補色價</p>
-            
-            <div class="input-group">
-                <div class="input-icon">👤</div>
-                <input type="text" id="queryInput" class="search-input" 
-                       placeholder="例如：林小美 或 0912345678" 
-                       onkeydown="if(event.key === 'Enter') searchRecord()">
-            </div>
+       <!-- 搜尋卡片 (請用這整塊覆蓋原本的搜尋卡片 div) -->
+    <div class="bg-white p-6 rounded-2xl shadow-xl shadow-pink-100/50 mb-8 border border-white">
+      <h2 class="text-2xl font-bold text-center mb-1 text-gray-800">霧眉霧唇補色價格查詢</h2>
+      <p class="text-center text-gray-400 text-sm mb-6">輸入姓名或電話號碼查詢您目前的補色價格</p>
+      
+      <div class="relative">
+        <input type="text" id="queryInput" placeholder="例如：林小美 或 0912..." 
+               class="w-full p-4 pl-5 rounded-xl bg-gray-50 border border-gray-200 text-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:bg-white transition-all placeholder-gray-400"
+               onkeydown="if(event.key === 'Enter') searchRecord()">
+      </div>
+
+      <button onclick="searchRecord()" id="searchButton" 
+              class="w-full mt-4 p-3.5 bg-gradient-to-r from-[#ff99aa] to-[#ff7a8b] hover:from-[#ff889b] hover:to-[#ff6075] text-white font-bold rounded-xl text-lg shadow-lg shadow-pink-200 transition-all transform active:scale-95 flex justify-center items-center">
+        <span>立即查詢</span>
+        <svg id="loadingIndicator" class="hidden animate-spin h-5 w-5 text-white ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
 
             <div class="notice-text">💡 小提醒：建議優先使用「姓名」查詢呦！</div>
             
             <button onclick="searchRecord()" id="searchButton" class="btn-search">
                 立即查詢
             </button>
+          <!-- ✨ 新增：價目表按鈕 ✨ -->
+      <button onclick="openImageModal()" 
+              class="w-full mt-3 p-3 border-2 border-pink-200 text-pink-400 font-bold rounded-xl hover:bg-pink-50 transition-colors flex justify-center items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        查看完整價目表
+      </button>
+
+      <div id="messageArea" class="hidden mt-4 text-center p-3 rounded-xl text-sm font-medium animate-pulse"></div>
+    </div>
 
             <!-- 訊息顯示 -->
             <div id="messageArea" class="msg-box"></div>
@@ -356,6 +371,42 @@
             btn.textContent = el.classList.contains('expanded') ? '收起完整價目表 ▲' : '查看完整價目表 ▼'; 
             btn.style.background = el.classList.contains('expanded') ? '#eee' : '#F9F8F6';
         }
+        // --- 價目表彈窗控制 ---
+  function openImageModal() {
+    const modal = document.getElementById('imageModal');
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // 防止背景滾動
+  }
+
+  function closeImageModal() {
+    const modal = document.getElementById('imageModal');
+    modal.classList.add('hidden');
+    document.body.style.overflow = ''; // 恢復背景滾動
+  }
+  
+  // 按下 ESC 鍵也可以關閉
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeImageModal();
+  });
     </script>
+    <!-- 價目表彈跳視窗 (Modal) -->
+  <div id="imageModal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+    <!-- 黑色背景遮罩 (點擊背景也可關閉) -->
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" onclick="closeImageModal()"></div>
+    
+    <!-- 圖片容器 -->
+    <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+      <div class="relative bg-white rounded-lg shadow-2xl max-w-4xl w-full overflow-hidden animate-enter">
+        <!-- 關閉按鈕 -->
+        <button onclick="closeImageModal()" class="absolute top-2 right-2 z-20 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        
+        <!-- 你的價目表圖片 -->
+        <img src="https://i.postimg.cc/fR4VQ9Hh/jia-mu-biao-(2).jpg" 
+             alt="完整價目表" class="w-full h-auto max-h-[85vh] object-contain mx-auto">
+      </div>
+    </div>
+  </div>
 </body>
 </html>
