@@ -263,125 +263,86 @@
             el.style.display = 'block';
         }
 
-        // ❗❗❗ 請用這段覆蓋原本的 createCard 函式 ❗❗❗
-  function createCard(r, index) {
-    const cid = `detail-${index}`;
-    const customDate = r.customFreeDate;
-    const eyebrowDate = r.eyebrowDiscountDate;
-    const type = r.customerType || '一般客戶';
-    
-    // =========== 網址設定區 ===========
-    // 1. 在 LINE 裡面要開的網址 (原本的神美 LIFF)
-    const LIFF_URL = "https://liff.line.me/1661306685-kQp9pya4";
-    
-    // 2. ⚠️ 在 LINE 以外 (如 Chrome) 要開的網址 (請填入你的 LINE 官方帳號連結)
-    // 例如： https://lin.ee/12345678
-    const LINE_OA_URL = "https://lin.ee/a9VfkYl"; 
-    // =================================
+     function createCard(r, i) { 
+            const cid = `card-${i}`; 
+            
+            // ✨ 標籤邏輯更新 ✨
+            let labels = [];
+            const ranges = r.touchUpRanges || [];
+            
+            if (r.service.includes('眉')) {
+                // 霧眉：固定4階
+                labels = ['半年內', '6-8個月', '8-12個月', '一年以上'];
+            } else if (r.service.includes('唇')) {
+                // 霧唇：判斷第一階是否為免費
+                if (ranges.length > 0 && ranges[0].price === 0) {
+                    // 首次客 (有贈送)
+                    labels = ['(贈)3個月內', '半年內', '一年內', '一年以上'];
+                } else {
+                    // 非首次 (直接從半年開始)
+                    labels = ['半年內', '一年內', '一年以上'];
+                }
+            } else {
+                labels = ['第一階', '第二階', '第三階', '第四階'];
+            }
 
-    // 自動偵測是否在 LINE App 內開啟
-    const isLineApp = /Line/i.test(navigator.userAgent);
-    
-    // 決定最終要去的網址
-    const finalUrl = isLineApp ? LIFF_URL : LINE_OA_URL;
-    
-    
-    const isFreeValid = customDate && !checkIsExpired(customDate);
-    const isEyebrowValid = eyebrowDate && !checkIsExpired(eyebrowDate);
+            const rangesHtml = ranges.map((t, idx) => {
+                const labelText = labels[idx] || '';
+                const isFree = t.price === 0;
+                const labelHtml = labelText ? `<span class="range-label ${isFree ? 'free' : ''}">${labelText}</span>` : '';
 
-    // 處理電話隱碼
-    const maskedPhone = maskPhoneNumber(r.phone);
+                return `
+                <div class="flex justify-between items-center py-3 border-b border-gray-100 text-sm last:border-0">
+                    <div class="flex flex-col">
+                        ${labelHtml}
+                        <span class="text-gray-600">${t.dateRange}</span>
+                    </div>
+                    <span class="font-bold text-gray-800 text-base">
+                        ${t.price === 0 ? '免費' : '$' + t.price}
+                    </span>
+                </div>`;
+            }).join(''); 
+            
+            return `
+            <div class="result-card">
+                <div class="result-header">
+                    <div>
+                        <div class="result-name">${r.name}</div>
+                        <span class="text-gray-400 text-sm">(${maskPhoneNumber(r.phone)})</span>
+                    </div>
+                </div>
+                
+                <div class="info-badges">
+                    <div class="info-badge">
+                        <span class="info-label">上次日期</span>
+                        <span class="info-value">${r.lastDate||'-'}</span>
+                    </div>
+                    <div class="info-badge">
+                        <span class="info-label">上次項目</span>
+                        <span class="info-value highlight">${r.service}</span>
+                    </div>
+                </div>
 
-    let rangesHtml = (r.touchUpRanges || []).map(t => {
-       const isFree = t.price === 0;
-       return `
-         <div class="flex justify-between items-center py-2 border-b border-dashed border-gray-200 last:border-0">
-           <span class="text-sm ${isFree ? 'text-green-600 font-bold' : 'text-gray-600'}">${t.dateRange}</span>
-           <span class="text-sm font-bold ${isFree ? 'bg-green-100 text-green-700 px-2 py-0.5 rounded' : 'text-gray-800'}">
-             ${t.price === 0 ? '免費' : (t.price ? '$'+t.price : '洽詢')}
-           </span>
-         </div>`;
-    }).join('');
+                ${r.specialReminder ? 
+                    `<div class="bg-yellow-50 text-yellow-800 p-3 rounded-xl text-sm mb-4 font-medium flex items-start gap-2">
+                        <span>💡</span><span>${r.specialReminder}</span>
+                     </div>` : ''
+                } 
+                
+                ${getPriceCardHtml(r.currentPriceInfo, r.eyebrowDiscountDate && !checkIsExpired(r.eyebrowDiscountDate))} 
+                
+                <div style="margin-top:20px;">
+                    <button onclick="toggleCollapse('${cid}', this)" 
+                            style="width:100%; padding:12px; background:#F9F8F6; color:#888; border:none; border-radius:12px; font-size:0.9rem; font-weight:600; cursor:pointer; transition:0.2s;">
+                        查看完整價目表 ▼
+                    </button>
+                    <div id="${cid}" class="collapsible-content bg-gray-50 px-4 mt-2 rounded-xl">
+                        <div class="py-3">${rangesHtml}</div>
+                    </div>
+                </div>
+            </div>`; 
+        }
 
-    return `
-      <div class="bg-white rounded-2xl p-5 shadow-lg border border-gray-100 animate-enter" style="animation-delay: ${index * 100}ms">
-        <!-- 標頭 -->
-        <div class="flex items-center justify-between mb-3">
-          <div>
-            <h3 class="text-lg font-bold text-gray-800 flex flex-wrap items-center gap-2">
-              ${r.name} 
-              ${maskedPhone ? `<span class="text-sm font-normal text-gray-500">(${maskedPhone})</span>` : ''}
-            </h3>
-            <div class="flex items-center gap-2 mt-1">
-                <span class="text-xs font-normal text-white bg-gray-400 px-2 py-0.5 rounded-full">${type}</span>
-                <p class="text-sm text-pink-500 font-medium">${r.service}</p>
-            </div>
-          </div>
-          <div class="text-right">
-             <p class="text-xs text-gray-400">上次預約</p>
-             <p class="text-sm font-bold text-gray-600">${r.lastDate || '無'}</p>
-          </div>
-        </div>
-
-        <!-- 特殊卡片區 -->
-        ${isFreeValid ? `
-          <div class="mb-3 bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-3">
-            <div class="bg-green-100 p-2 rounded-full text-green-600">🎁</div>
-            <div>
-              <p class="text-xs text-green-800 font-bold">免費補色到期日</p>
-              <p class="text-base font-black text-green-700">${customDate}</p>
-            </div>
-          </div>
-        ` : ''}
-
-        ${isEyebrowValid ? `
-          <div class="mb-3 bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-center gap-3">
-            <div class="bg-orange-100 p-2 rounded-full text-orange-600">🔥</div>
-            <div>
-              <p class="text-xs text-orange-800 font-bold">首次補色優惠期限</p>
-              <p class="text-base font-black text-orange-700">${eyebrowDate}</p>
-            </div>
-          </div>
-        ` : ''}
-
-        <!-- 目前價格 -->
-        ${getPriceCardHtml(r.currentPriceInfo, isEyebrowValid)}
-
-        <!-- 預約按鈕 (會根據瀏覽器自動換網址) -->
-        <a href="${finalUrl}" class="block mt-4 w-full py-3 bg-[#06c755] hover:bg-[#05b34c] text-white font-bold rounded-xl text-center shadow-md transition flex justify-center items-center gap-2">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-          立即前往預約
-        </a>
-
-        <!-- 特別提醒 -->
-        ${r.specialReminder ? `
-            <div class="mt-4 bg-yellow-50 border border-yellow-200 text-yellow-800 p-3 rounded-xl flex items-start gap-3 shadow-sm">
-              <span class="text-xl">💡</span>
-              <div>
-                <p class="font-bold text-sm">特別提醒</p>
-                <p class="text-sm leading-relaxed">${r.specialReminder}</p>
-              </div>
-            </div>
-        ` : ''}
-
-        <!-- 摺疊區塊與按鈕 -->
-        <div class="mt-4">
-          <button onclick="toggleCollapse(this, '${cid}')" 
-                  class="group w-full py-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-gray-600 font-bold transition-all flex items-center justify-center gap-2 shadow-sm">
-            <span class="btn-text group-hover:text-[#ff99aa] transition-colors">查看完整價目表</span>
-            <svg class="icon-arrow w-5 h-5 text-gray-400 group-hover:text-[#ff99aa] transition-transform duration-300 transform group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-          </button>
-          
-          <div id="${cid}" class="collapsible-content bg-gray-50 rounded-xl px-4 mt-2">
-            <div class="py-4 space-y-2">
-              ${rangesHtml}
-              <p class="text-[10px] text-gray-400 text-center mt-2 pt-2 border-t border-gray-200">系統試算僅供參考，實際費用以現場狀況為準</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
         function getPriceCardHtml(info, useOrange) { 
             if (!info) return ''; 
             let p = info.price===0 ? '免費' : (info.price ? `NT$ ${info.price}` : '洽詢'); 
