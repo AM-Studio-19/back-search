@@ -12,15 +12,16 @@
     </script>
 
     <style>
-        /* --- 品牌色調 --- */
+        /* --- 品牌色調（奶油 x 淡粉）--- */
         :root {
-            --primary: #D6BFA8;   /* 奶茶棕 */
-            --primary-dark: #C4A488;
-            --secondary: #E6C2C2; /* 玫瑰粉 */
-            --text: #5A483F;      /* 深咖字 */
-            --text-light: #8D7B72;
-            --bg-color: #F9F8F6;  
-            --card-shadow: 0 10px 30px -10px rgba(214, 191, 168, 0.4);
+            --primary: #F3E1CB;      /* 奶油杏 */
+            --primary-dark: #E8CBA3; /* 深奶茶杏 */
+            --secondary: #F5D3D7;    /* 淡粉 */
+            --secondary-dark: #E7A9B1; /* 深玫瑰粉，按鈕/強調用 */
+            --text: #6B5548;         /* 溫暖咖啡棕字 */
+            --text-light: #A5907F;
+            --bg-color: #FFF9F1;     /* 奶油白底 */
+            --card-shadow: 0 10px 30px -10px rgba(231, 169, 177, 0.35);
         }
 
         /* 全域設定 */
@@ -41,13 +42,13 @@
 
         /* --- 頂部 Header --- */
         .header-section {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white; 
-            padding: 40px 20px 60px 20px; 
-            text-align: center; 
-            border-radius: 0 0 40px 40px; 
-            position: relative; 
-            box-shadow: 0 10px 25px rgba(196, 164, 136, 0.4);
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            color: var(--text);
+            padding: 40px 20px 60px 20px;
+            text-align: center;
+            border-radius: 0 0 40px 40px;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(231, 169, 177, 0.3);
             margin-bottom: -40px;
         }
         
@@ -63,9 +64,9 @@
             border: 1px solid rgba(255,255,255,0.8);
         }
         .search-icon-box {
-            width: 70px; height: 70px; background: #FFF5F5;
+            width: 70px; height: 70px; background: #FDF3E7;
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 20px auto; color: var(--secondary);
+            margin: 0 auto 20px auto; color: var(--secondary-dark);
             font-size: 2rem; border: 4px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
         
@@ -78,20 +79,20 @@
             border: 2px solid #eee; border-radius: 18px; background-color: #FAFAFA;
             outline: none; transition: 0.3s; color: var(--text);
         }
-        .search-input:focus { background-color: #fff; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(214, 191, 168, 0.15); }
+        .search-input:focus { background-color: #fff; border-color: var(--secondary-dark); box-shadow: 0 0 0 4px rgba(231, 169, 177, 0.15); }
         .input-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #ccc; font-size: 1.2rem; }
 
         .btn-search {
             display: block; width: 100%; padding: 18px 0;
-            background: linear-gradient(135deg, #E6C2C2 0%, #Dcb0b0 100%);
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
             color: #fff; border-radius: 18px; font-weight: 700; font-size: 1.1rem;
             cursor: pointer; border: none; letter-spacing: 1px;
-            box-shadow: 0 8px 20px rgba(230, 194, 194, 0.4); transition: 0.3s;
+            box-shadow: 0 8px 20px rgba(231, 169, 177, 0.4); transition: 0.3s;
         }
-        .btn-search:active { transform: scale(0.98); box-shadow: 0 4px 10px rgba(230, 194, 194, 0.4); }
+        .btn-search:active { transform: scale(0.98); box-shadow: 0 4px 10px rgba(231, 169, 177, 0.4); }
         .btn-search:disabled { opacity: 0.7; cursor: wait; }
 
-        .notice-text { font-size: 0.85rem; color: #C17E7E; font-weight: bold; margin-top: 15px; background: #FFF0F0; padding: 10px; border-radius: 10px; display: inline-block; }
+        .notice-text { font-size: 0.85rem; color: #C17E86; font-weight: bold; margin-top: 15px; background: #FDF0F1; padding: 10px; border-radius: 10px; display: inline-block; }
 
         /* --- 查詢結果卡片 --- */
         .result-container { margin-top: 30px; }
@@ -104,10 +105,10 @@
         .result-name { font-size: 1.3rem; font-weight: 700; color: var(--text); }
         
         .info-badges { display: flex; gap: 10px; margin-bottom: 20px; }
-        .info-badge { flex: 1; background: #F9F8F6; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #eee; }
+        .info-badge { flex: 1; background: var(--bg-color); padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #F2E4D8; }
         .info-label { display: block; font-size: 0.8rem; color: #999; margin-bottom: 4px; }
         .info-value { display: block; font-size: 1.1rem; font-weight: 700; color: var(--text); }
-        .info-value.highlight { color: #C17E7E; }
+        .info-value.highlight { color: #C17E86; }
 
         /* 價格顯示 */
         .price-box { 
@@ -128,10 +129,10 @@
         
         /* 備註標籤樣式 */
         .range-label {
-            display: inline-block; font-size: 0.75rem; background-color: var(--primary);
-            color: white; padding: 2px 8px; border-radius: 4px; margin-bottom: 4px; font-weight: bold;
+            display: inline-block; font-size: 0.75rem; background-color: var(--primary-dark);
+            color: var(--text); padding: 2px 8px; border-radius: 4px; margin-bottom: 4px; font-weight: bold;
         }
-        .range-label.free { background-color: #E6C2C2; }
+        .range-label.free { background-color: var(--secondary); color: var(--text); }
 
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
@@ -147,19 +148,19 @@
 
     <div class="container">
  <!-- 搜尋卡片區塊 -->
-    <div class="bg-white p-6 rounded-2xl shadow-xl shadow-pink-100/50 mb-8 border border-white">
-      <h2 class="text-2xl font-bold text-center mb-1 text-gray-800">霧眉霧唇補色價格查詢</h2>
+    <div class="bg-white p-6 rounded-2xl shadow-xl shadow-[#F5D3D7]/50 mb-8 border border-white">
+      <h2 class="text-2xl font-bold text-center mb-1 text-[#6B5548]">霧眉霧唇補色價格查詢</h2>
       <p class="text-center text-gray-400 text-sm mb-6">輸入姓名或電話號碼查詢您目前的補色價格</p>
-      
+
       <div class="relative">
-        <input type="text" id="queryInput" placeholder="例如：林小美 或 0912345678" 
-               class="w-full p-4 pl-5 rounded-xl bg-gray-50 border border-gray-200 text-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:bg-white transition-all placeholder-gray-400"
+        <input type="text" id="queryInput" placeholder="例如：林小美 或 0912345678"
+               class="w-full p-4 pl-5 rounded-xl bg-[#FFF9F1] border border-[#F2E4D8] text-lg focus:outline-none focus:ring-2 focus:ring-[#E7A9B1] focus:bg-white transition-all placeholder-gray-400"
                onkeydown="if(event.key === 'Enter') searchRecord()">
       </div>
 
-  <!-- 立即查詢按鈕 (清新莫蘭迪粉) -->
-      <button onclick="searchRecord()" id="searchButton" 
-              class="w-full mt-4 p-3.5 bg-gradient-to-r from-[#E4B1B7] to-[#D38E98] hover:from-[#D99CA3] hover:to-[#C07883] text-white font-bold rounded-xl text-lg shadow-lg shadow-pink-100 transition-all transform active:scale-95 flex justify-center items-center">
+  <!-- 立即查詢按鈕 (奶油 x 淡粉) -->
+      <button onclick="searchRecord()" id="searchButton"
+              class="w-full mt-4 p-3.5 bg-gradient-to-r from-[#F5D3D7] to-[#E7A9B1] hover:from-[#EFC0C6] hover:to-[#DE96A0] text-white font-bold rounded-xl text-lg shadow-lg shadow-[#F5D3D7]/60 transition-all transform active:scale-95 flex justify-center items-center">
         <span>立即查詢</span>
         <svg id="loadingIndicator" class="hidden animate-spin h-5 w-5 text-white ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -167,9 +168,9 @@
         </svg>
       </button>
 
-     <!-- 查看補色價目表按鈕 (灰色系，協調莫蘭迪粉) -->
-      <button onclick="openImageModal()" 
-              class="w-full mt-3 p-3 border-2 border-gray-200 text-gray-400 font-bold rounded-xl hover:bg-gray-50 hover:text-gray-600 hover:border-gray-300 transition-all flex justify-center items-center gap-2">
+     <!-- 查看補色價目表按鈕 (奶油灰系，協調淡粉) -->
+      <button onclick="openImageModal()"
+              class="w-full mt-3 p-3 border-2 border-[#F2E4D8] text-[#A5907F] font-bold rounded-xl hover:bg-[#FFF9F1] hover:text-[#6B5548] hover:border-[#E8CBA3] transition-all flex justify-center items-center gap-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
         查看補色價目表
       </button>
@@ -309,31 +310,31 @@
                     </div>
                 </div>
 
-                ${r.specialReminder ? 
-                    `<div class="bg-yellow-50 text-yellow-800 p-3 rounded-xl text-sm mb-4 font-medium flex items-start gap-2">
+                ${r.specialReminder ?
+                    `<div class="bg-[#FDF3E7] text-[#9C7A3C] p-3 rounded-xl text-sm mb-4 font-medium flex items-start gap-2">
                         <span>💡</span><span>${r.specialReminder}</span>
                      </div>` : ''
-                } 
-                
-                ${getPriceCardHtml(r.currentPriceInfo, r.eyebrowDiscountDate && !checkIsExpired(r.eyebrowDiscountDate))} 
-                
+                }
+
+                ${getPriceCardHtml(r.currentPriceInfo, r.eyebrowDiscountDate && !checkIsExpired(r.eyebrowDiscountDate))}
+
                 <div style="margin-top:20px;">
-                    <button onclick="toggleCollapse('${cid}', this)" 
-                            style="width:100%; padding:12px; background:#F9F8F6; color:#888; border:none; border-radius:12px; font-size:0.9rem; font-weight:600; cursor:pointer; transition:0.2s;">
+                    <button onclick="toggleCollapse('${cid}', this)"
+                            style="width:100%; padding:12px; background:#FFF9F1; color:#A5907F; border:none; border-radius:12px; font-size:0.9rem; font-weight:600; cursor:pointer; transition:0.2s;">
                         查看完整價目表 ▼
                     </button>
-                    <div id="${cid}" class="collapsible-content bg-gray-50 px-4 mt-2 rounded-xl">
+                    <div id="${cid}" class="collapsible-content bg-[#FFF9F1] px-4 mt-2 rounded-xl">
                         <div class="py-3">${rangesHtml}</div>
                     </div>
                 </div>
-            </div>`; 
+            </div>`;
         }
 
-        function getPriceCardHtml(info, useOrange) { 
-            if (!info) return ''; 
-            let p = info.price===0 ? '免費' : (info.price ? `NT$ ${info.price}` : '洽詢'); 
-            let bg = info.price===0 ? 'bg-green-600' : (useOrange ? 'bg-orange-500' : 'bg-pink-500'); 
-            let theme = info.price===0 ? 'bg-green-50 border-green-200' : (useOrange ? 'bg-orange-50 border-orange-200' : 'bg-pink-50 border-pink-200'); 
+        function getPriceCardHtml(info, useOrange) {
+            if (!info) return '';
+            let p = info.price===0 ? '免費' : (info.price ? `NT$ ${info.price}` : '洽詢');
+            let bg = info.price===0 ? 'bg-emerald-500' : (useOrange ? 'bg-[#D9A24B]' : 'bg-[#E7A9B1]');
+            let theme = info.price===0 ? 'bg-emerald-50 border-emerald-200' : (useOrange ? 'bg-[#FDF3E7] border-[#E8CBA3]' : 'bg-[#FDF0F1] border-[#F5D3D7]');
             let dateText = (info.dateRange || '').replace(/【.*?】/g, '');
             
             return `
@@ -352,7 +353,7 @@
             const el = document.getElementById(id); 
             el.classList.toggle('expanded'); 
             btn.textContent = el.classList.contains('expanded') ? '收起完整價目表 ▲' : '查看完整價目表 ▼'; 
-            btn.style.background = el.classList.contains('expanded') ? '#eee' : '#F9F8F6';
+            btn.style.background = el.classList.contains('expanded') ? '#F2E4D8' : '#FFF9F1';
         }
         // --- 價目表彈窗控制 ---
   function openImageModal() {
