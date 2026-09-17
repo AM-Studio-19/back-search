@@ -253,8 +253,15 @@
                         ${t.price === 0 ? '免費' : '$' + t.price}
                     </span>
                 </div>`;
-            }).join(''); 
-            
+            }).join('');
+
+            const priceDateText = (r.currentPriceInfo && r.currentPriceInfo.dateRange || '').replace(/【.*?】/g, '').trim();
+            let matchedIdx = ranges.findIndex(t => t.dateRange === priceDateText);
+            if (matchedIdx === -1 && r.currentPriceInfo) {
+                matchedIdx = ranges.findIndex(t => t.price === r.currentPriceInfo.price);
+            }
+            const currentTierLabel = matchedIdx > -1 ? (labels[matchedIdx] || '') : '';
+
             return `
             <div class="result-card">
                 <div class="result-header">
@@ -281,7 +288,7 @@
                      </div>` : ''
                 }
 
-                ${getPriceCardHtml(r.currentPriceInfo, r.eyebrowDiscountDate && !checkIsExpired(r.eyebrowDiscountDate))}
+                ${getPriceCardHtml(r.currentPriceInfo, r.eyebrowDiscountDate && !checkIsExpired(r.eyebrowDiscountDate), currentTierLabel)}
 
                 <div style="margin-top:20px;">
                     <button onclick="toggleCollapse('${cid}', this)"
@@ -295,23 +302,20 @@
             </div>`;
         }
 
-        function getPriceCardHtml(info, useOrange) {
+        function getPriceCardHtml(info, useOrange, tierLabel) {
             if (!info) return '';
             let p = info.price===0 ? '免費' : (info.price ? `NT$ ${info.price}` : '洽詢');
             let bg = info.price===0 ? 'bg-emerald-600' : (useOrange ? 'bg-[#B8853A]' : 'bg-[#B85868]');
             let theme = info.price===0 ? 'bg-emerald-50 border-emerald-200' : (useOrange ? 'bg-[#FDF3E7] border-[#E8CBA3]' : 'bg-[#FDF0F1] border-[#F5D3D7]');
-            const raw = info.dateRange || '';
-            const labelMatch = raw.match(/【(.*?)】/);
-            const rangeLabel = labelMatch ? labelMatch[1] : '';
-            const dateText = raw.replace(/【.*?】/g, '').trim();
-            const titleText = rangeLabel ? `${rangeLabel}補色` : (dateText || '目前補色');
+            const dateText = (info.dateRange || '').replace(/【.*?】/g, '').trim();
+            const titleText = tierLabel ? `${tierLabel}補色` : (dateText || '目前補色');
 
             return `
             <div class="price-box border ${theme}">
                 <div>
                     <h3 class="text-xs font-bold tracking-wide text-gray-500 mb-1.5">目前補色價格</h3>
                     <p class="text-xl font-bold text-gray-800 leading-snug">${titleText}</p>
-                    ${rangeLabel && dateText ? `<p class="text-xs text-gray-500 mt-1">${dateText}</p>` : ''}
+                    ${tierLabel && dateText ? `<p class="text-xs text-gray-500 mt-1">${dateText}</p>` : ''}
                 </div>
                 <span class="shrink-0 px-4 py-2 text-white text-xl font-bold rounded-xl ${bg} shadow-md tabular-nums">${p}</span>
             </div>`;
