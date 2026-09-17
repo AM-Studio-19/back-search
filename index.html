@@ -258,20 +258,20 @@
             return `
             <div class="result-card">
                 <div class="result-header">
-                    <div>
-                        <div class="result-name">${r.name}</div>
+                    <div class="flex items-baseline gap-2 flex-wrap">
+                        <span class="result-name">${r.name}</span>
                         <span class="text-gray-500 text-sm">(${maskPhoneNumber(r.phone)})</span>
                     </div>
                 </div>
-                
+
                 <div class="info-badges">
-                    <div class="info-badge">
-                        <span class="info-label">上次日期</span>
-                        <span class="info-value">${r.lastDate||'-'}</span>
-                    </div>
                     <div class="info-badge">
                         <span class="info-label">上次項目</span>
                         <span class="info-value highlight">${r.service}</span>
+                    </div>
+                    <div class="info-badge">
+                        <span class="info-label">上次日期</span>
+                        <span class="info-value">${r.lastDate||'-'}</span>
                     </div>
                 </div>
 
@@ -300,20 +300,25 @@
             let p = info.price===0 ? '免費' : (info.price ? `NT$ ${info.price}` : '洽詢');
             let bg = info.price===0 ? 'bg-emerald-600' : (useOrange ? 'bg-[#B8853A]' : 'bg-[#B85868]');
             let theme = info.price===0 ? 'bg-emerald-50 border-emerald-200' : (useOrange ? 'bg-[#FDF3E7] border-[#E8CBA3]' : 'bg-[#FDF0F1] border-[#F5D3D7]');
-            let dateText = (info.dateRange || '').replace(/【.*?】/g, '');
-            
+            const raw = info.dateRange || '';
+            const labelMatch = raw.match(/【(.*?)】/);
+            const rangeLabel = labelMatch ? labelMatch[1] : '';
+            const dateText = raw.replace(/【.*?】/g, '').trim();
+            const titleText = rangeLabel ? `${rangeLabel}補色` : (dateText || '目前補色');
+
             return `
             <div class="price-box border ${theme}">
                 <div>
                     <h3 class="text-xs font-bold tracking-wide text-gray-500 mb-1.5">目前補色價格</h3>
-                    <p class="text-lg font-bold text-gray-800 leading-snug">${dateText}</p>
+                    <p class="text-xl font-bold text-gray-800 leading-snug">${titleText}</p>
+                    ${rangeLabel && dateText ? `<p class="text-xs text-gray-500 mt-1">${dateText}</p>` : ''}
                 </div>
                 <span class="shrink-0 px-4 py-2 text-white text-xl font-bold rounded-xl ${bg} shadow-md tabular-nums">${p}</span>
             </div>`;
         }
 
         function checkIsExpired(d) { if(!d)return false; return new Date() > new Date(d); }
-        function maskPhoneNumber(p) { if(!p)return''; let s=String(p).replace(/'/g,'').trim(); return s.length<8?s:s.substring(0,4)+'***'+s.substring(s.length-3); }
+        function maskPhoneNumber(p) { if(!p)return''; let s=String(p).replace(/'/g,'').trim(); return s.length<3?s:'末三碼'+s.slice(-3); }
         function toggleCollapse(id, btn) { 
             const el = document.getElementById(id); 
             el.classList.toggle('expanded'); 
