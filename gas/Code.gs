@@ -288,19 +288,31 @@ function searchCustomer(query) {
       const touchUpRanges = [];
       let currentPriceInfo = null;
 
+      // 首次免費補色：操作日後一個月 ~ 指定的免費補色到期日
+      let paidStartDate = null;
       if (hasCustomFreeDate) {
         const daysMsg = getDaysRemainingText(parsedCustomFreeDate);
-        touchUpRanges.push({ dateRange: `免費補色到期日: ${customFreeDate}`, price: 0 });
+        const freeStartStr = Utilities.formatDate(addMonths(lastDate, 1), tz, "yyyy/MM/dd");
+        const freeRange = `${freeStartStr} ~ ${customFreeDate} (免費補色)`;
+        touchUpRanges.push({ dateRange: freeRange, price: 0 });
         if (now <= parsedCustomFreeDate) {
-          currentPriceInfo = { dateRange: `【目前】免費補色到期日: ${customFreeDate}`, price: 0, daysRemainingText: daysMsg };
+          currentPriceInfo = { dateRange: `【目前】${freeRange}`, price: 0, daysRemainingText: daysMsg };
         }
+        // 超過免費期限後，收費區間從到期日隔天開始
+        paidStartDate = new Date(parsedCustomFreeDate.getTime());
+        paidStartDate.setDate(paidStartDate.getDate() + 1);
       }
 
       rules.forEach(rule => {
         if (hasCustomFreeDate && rule.price === 0) return;
         if (rule.startM === rule.endM) return;
 
-        const startDate = addMonths(baseDate, rule.startM);
+        let startDate = addMonths(baseDate, rule.startM);
+        if (paidStartDate) {
+          // 整段都在免費期內的區間不顯示
+          if (rule.endM < 999 && addMonths(baseDate, rule.endM) <= paidStartDate) return;
+          if (startDate < paidStartDate) startDate = paidStartDate;
+        }
         const startDateStr = Utilities.formatDate(startDate, tz, "yyyy/MM/dd");
         let endDate = null;
         let dateStr = "";
