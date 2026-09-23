@@ -155,7 +155,7 @@
 
     <!-- JavaScript 邏輯 -->
     <script>
-        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbx6grwl5DidK6DScAaZLM8udp-Pjn_FrB33bv6ES0JkwAiiIx-xxJHicxANVGH7caSpEg/exec"; 
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyynSPWcvBcpXpuUiKYgZTHroqDwa0gEJx9jQpxmiI4_1fdT2O4qYEG9ijfg_l3kikq6w/exec"; 
 
         function searchRecord() {
             let q = document.getElementById('queryInput').value.trim();
@@ -172,7 +172,18 @@
             document.getElementById('messageArea').style.display = 'none';
 
             fetch(`${GAS_API_URL}?q=${encodeURIComponent(q)}`)
-                .then(response => response.json())
+                .then(response => response.text())
+                .then(text => {
+                    // GAS 權限未開放時會回傳 Google 登入頁 (HTML) 而不是 JSON
+                    let res;
+                    try { res = JSON.parse(text); }
+                    catch (e) { throw new Error('API 未回傳 JSON（請確認 Apps Script 部署的存取權為「所有人」並已部署新版本）'); }
+                    // GAS 端發生錯誤（例如找不到 record 分頁）
+                    if (res.error || res.status === 'error') {
+                        throw new Error(res.error || res.message || 'Apps Script 執行錯誤');
+                    }
+                    return res;
+                })
                 .then(res => {
                     if (res.data && res.data.length > 0) {
                         // 1. 排序 (日期新到舊)
@@ -200,7 +211,8 @@
                 })
                 .catch(err => {
                     console.error(err);
-                    showMessage('error', '系統連線失敗，請稍後再試');
+                    const detail = err && err.message && err.message !== 'Failed to fetch' ? `（${err.message}）` : '';
+                    showMessage('error', `系統連線失敗，請稍後再試${detail}`);
                 })
                 .finally(() => {
                     btn.textContent = '立即查詢'; 
@@ -229,7 +241,7 @@
                 // 霧唇：判斷第一階是否為免費
                 if (ranges.length > 0 && ranges[0].price === 0) {
                     // 首次客 (有贈送)
-                    labels = ['(贈)3個月內', '半年內', '一年內', '一年以上'];
+                    labels = ['(贈)免費補色', '半年內', '一年內', '一年以上'];
                 } else {
                     // 非首次 (直接從半年開始)
                     labels = ['半年內', '一年內', '一年以上'];
