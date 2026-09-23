@@ -279,7 +279,7 @@
                 <div class="result-header">
                     <div class="flex items-baseline gap-2 flex-wrap">
                         <span class="result-name">${r.name}</span>
-                        <span class="text-gray-500 text-sm">(${maskPhoneNumber(r.phone)})</span>
+                        ${r.phone ? `<span class="text-gray-500 text-sm">(${maskPhoneNumber(r.phone)})</span>` : ''}
                     </div>
                 </div>
 
@@ -320,7 +320,7 @@
             let bg = info.price===0 ? 'bg-emerald-600' : (useOrange ? 'bg-[#B8853A]' : 'bg-[#B85868]');
             let theme = info.price===0 ? 'bg-emerald-50 border-emerald-200' : (useOrange ? 'bg-[#FDF3E7] border-[#E8CBA3]' : 'bg-[#FDF0F1] border-[#F5D3D7]');
             const dateText = (info.dateRange || '').replace(/【.*?】/g, '').trim();
-            const titleText = tierLabel ? `${tierLabel}補色` : (dateText || '目前補色');
+            const titleText = tierLabel ? (tierLabel.endsWith('補色') ? tierLabel : `${tierLabel}補色`) : (dateText || '目前補色');
 
             return `
             <div class="price-box border ${theme}">
