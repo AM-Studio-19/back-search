@@ -267,6 +267,10 @@ function searchCustomer(query) {
       // 免費補色到期日
       let customFreeDate = null;
       const parsedCustomFreeDate = parseDateLoose(cell(row, indices["免費補色到期日"]));
+      // 試算表只輸入「2/10」會自動套用今年，到期日若早於操作日就順延到隔年
+      if (parsedCustomFreeDate) {
+        while (parsedCustomFreeDate < lastDate) parsedCustomFreeDate.setFullYear(parsedCustomFreeDate.getFullYear() + 1);
+      }
       const hasCustomFreeDate = !!parsedCustomFreeDate;
       if (hasCustomFreeDate) customFreeDate = Utilities.formatDate(parsedCustomFreeDate, tz, "yyyy/MM/dd");
 
